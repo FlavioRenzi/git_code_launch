@@ -19,8 +19,13 @@ class KeywordQueryEventListener(EventListener):
         code_command = extension.preferences["code_command"]
         root_folder = extension.preferences["root_folder"]
 
-        search_command = "find " + root_folder + " -type d -name .git -prune -exec dirname \{} \; | rev | cut -d'/' -f1 | rev"
-        
+        search_command = (
+            "find " + root_folder + " -type d -name .git -prune -print0 | "
+            "xargs -0 -I{} sh -c 'cd \"$(dirname \"{}\")\" && "
+            "echo \"$(git log -1 --format=%ct 2>/dev/null) $(basename \"$(pwd)\")\"' | "
+            "sort -nr | cut -d' ' -f2-"
+        )
+
         projects = []
         items = []
 
